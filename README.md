@@ -1,8 +1,6 @@
 # -websocket-
 心跳重连缘由
 
- 
-
 websocket是前后端交互的长连接，前后端也都可能因为一些情况导致连接失效并且相互之间没有反馈提醒。因此为了保证连接的可持续性和稳定性，websocket心跳重连就应运而生。
 
 在使用原生websocket的时候，如果设备网络断开，不会触发websocket的任何事件函数，前端程序无法得知当前连接已经断开。这个时候如果调用websocket.send方法，浏览器就会发现消息发不出去，便会立刻或者一定短时间后（不同浏览器或者浏览器版本可能表现不同）触发onclose函数。
@@ -10,17 +8,14 @@ websocket是前后端交互的长连接，前后端也都可能因为一些情�
 后端websocket服务也可能出现异常，连接断开后前端也并没有收到通知，因此需要前端定时发送心跳消息ping，后端收到ping类型的消息，立马返回pong消息，告知前端连接正常。如果一定时间没收到pong消息，就说明连接不正常，前端便会执行重连。
 
 为了解决以上两个问题，以前端作为主动方，定时发送ping消息，用于检测网络和前后端连接问题。一旦发现异常，前端持续执行重连逻辑，直到重连成功。
-
  
-
- 
-
 如何实现
 
 在websocket实例化的时候，我们会绑定一些事件：
 
-复制代码
+
 var ws = new WebSocket(url);
+
 ws.onclose = function () {
     //something
 };
@@ -34,10 +29,9 @@ ws.onopen = function () {
 ws.onmessage = function (event) {
    //something
 }
-复制代码
+
 如果希望websocket连接一直保持，我们会在close或者error上绑定重新连接方法。
 
-复制代码
 ws.onclose = function () {
     reconnect();
 };
@@ -45,16 +39,13 @@ ws.onerror = function () {
     reconnect();
 };
     
-复制代码
-这样一般正常情况下失去连接时，触发onclose方法，我们就能执行重连了。
 
- 
+这样一般正常情况下失去连接时，触发onclose方法，我们就能执行重连了。
 
 那么针对断网的情况的心跳重连，怎么实现呢。
 
 简单的实现：
 
-复制代码
 var heartCheck = {
     timeout: 60000,//60ms
     timeoutObj: null,
@@ -116,9 +107,6 @@ ws.onmessage = function (event) {
 
 一点特别重要的发送心跳到后端，后端收到消息之后必须返回消息，否则超过60秒之后会判定后端主动断开了。再改造下代码:
 
- 
-
-复制代码
 var heartCheck = {
     timeout: 60000,//60ms
     timeoutObj: null,
@@ -152,9 +140,6 @@ ws.onerror = function () {
     reconnect();
 };
  
-复制代码
- 
-
 PS：
 
     因为目前我们这种方式会一直重连如果没连接上或者断连的话，如果有两个设备同时登陆并且会踢另一端下线，一定要发送一个踢下线的消息类型，这边接收到这种类型的消息，逻辑判断后就不再执行reconnect，否则会出现一只相互挤下线的死循环。
